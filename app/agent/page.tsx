@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import AgentMascot from "@/components/mascot/AgentMascot";
-import SkillCard from "@/components/skills/SkillCard";
+import SkillListItem from "@/components/skills/SkillListItem";
 import RunPrompt from "@/components/agent/RunPrompt";
 import RunStream from "@/components/agent/RunStream";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,7 @@ import { PRESET_LOADOUTS } from "@/lib/skills-data";
 
 const LS_EQUIPPED_KEY = "openclaude_equipped_skills";
 const LS_RUNS_KEY = "openclaude_runs";
+const LS_RULES_KEY = "openclaude_skill_rules";
 
 function getFromLS<T>(key: string, fallback: T): T {
   if (typeof window === "undefined") return fallback;
@@ -29,6 +30,7 @@ export default function AgentPage() {
   const [skills, setSkills] = useState<Skill[]>([]);
   const [equippedIds, setEquippedIds] = useState<Set<string>>(new Set());
   const [runs, setRuns] = useState<Run[]>([]);
+  const [skillRules, setSkillRules] = useState<Record<string, string[]>>({});
   const [selectedLoadout, setSelectedLoadout] = useState<string | null>(null);
   const [isRunning, setIsRunning] = useState(false);
   const [streamContent, setStreamContent] = useState("");
@@ -36,18 +38,20 @@ export default function AgentPage() {
 
   // Load data on mount
   useEffect(() => {
-    // Fetch skills from API
     fetch("/api/skills")
       .then((r) => r.json())
       .then((data: Skill[]) => setSkills(data))
       .catch(() => {});
 
-    // Load persisted state from localStorage
     const savedIds = getFromLS<string[]>(LS_EQUIPPED_KEY, []);
     setEquippedIds(new Set(savedIds));
 
     const savedRuns = getFromLS<Run[]>(LS_RUNS_KEY, []);
     setRuns(savedRuns);
+
+    const savedRules = getFromLS<Record<string, string[]>>(LS_RULES_KEY, {});
+    setSkillRules(savedRules);
+
     setLoaded(true);
   }, []);
 
@@ -60,6 +64,12 @@ export default function AgentPage() {
     );
   }, [equippedIds, loaded]);
 
+  // Persist skill rules
+  useEffect(() => {
+    if (!loaded) return;
+    localStorage.setItem(LS_RULES_KEY, JSON.stringify(skillRules));
+  }, [skillRules, loaded]);
+
   const toggleSkill = useCallback((id: string) => {
     setEquippedIds((prev) => {
       const next = new Set(prev);
@@ -70,6 +80,10 @@ export default function AgentPage() {
       }
       return next;
     });
+  }, []);
+
+  const updateRules = useCallback((skillId: string, rules: string[]) => {
+    setSkillRules((prev) => ({ ...prev, [skillId]: rules }));
   }, []);
 
   const applyLoadout = useCallback(
@@ -86,7 +100,6 @@ export default function AgentPage() {
 
   const equippedSkills = skills.filter((s) => equippedIds.has(s.id));
 
-  // Derive equipped categories for mascot display
   const equippedCategories = new Set<string>(
     equippedSkills.map((s) => s.category)
   );
@@ -101,6 +114,14 @@ export default function AgentPage() {
       const runId = `run-${Date.now()}`;
       let fullResponse = "";
 
+      // Only send rules for equipped skills
+      const activeRules: Record<string, string[]> = {};
+      for (const id of equippedIds) {
+        if (skillRules[id]?.length) {
+          activeRules[id] = skillRules[id];
+        }
+      }
+
       try {
         const res = await fetch("/api/agent/run", {
           method: "POST",
@@ -108,6 +129,7 @@ export default function AgentPage() {
           body: JSON.stringify({
             prompt,
             skillIds: Array.from(equippedIds),
+            skillRules: activeRules,
           }),
         });
 
@@ -148,7 +170,6 @@ export default function AgentPage() {
         setStreamContent(fullResponse);
       }
 
-      // Save run
       const newRun: Run = {
         id: runId,
         user_id: "local",
@@ -167,7 +188,7 @@ export default function AgentPage() {
       localStorage.setItem(LS_RUNS_KEY, JSON.stringify(updatedRuns));
       setIsRunning(false);
     },
-    [equippedIds, equippedSkills, runs]
+    [equippedIds, equippedSkills, runs, skillRules]
   );
 
   return (
@@ -213,24 +234,27 @@ export default function AgentPage() {
         />
       </section>
 
-      {/* Skill Grid */}
+      {/* Skill List */}
       <section id="skills">
         <h2 className="mb-3 text-sm font-medium text-muted-foreground uppercase tracking-wider">
           Skills
         </h2>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="space-y-3">
           {skills.map((skill) => (
-            <SkillCard
+            <SkillListItem
               key={skill.id}
               skill={skill}
               isEquipped={equippedIds.has(skill.id)}
               onToggle={() => toggleSkill(skill.id)}
+              rules={skillRules[skill.id] || []}
+              onRulesChange={(rules) => updateRules(skill.id, rules)}
+              processSteps={skill.process_steps || []}
             />
           ))}
         </div>
       </section>
 
-      {/* Stream Output — shown above prompt when active */}
+      {/* Stream Output */}
       {(isRunning || streamContent) && (
         <section>
           <RunStream streamContent={streamContent} isStreaming={isRunning} />

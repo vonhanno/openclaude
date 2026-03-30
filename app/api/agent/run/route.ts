@@ -6,7 +6,7 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
-  const { prompt, skillIds } = await request.json();
+  const { prompt, skillIds, skillRules } = await request.json();
 
   if (!prompt) {
     return new Response(
@@ -19,7 +19,7 @@ export async function POST(request: Request) {
   }
 
   const skills = PRESET_SKILLS.filter((s) => skillIds?.includes(s.id));
-  const systemPrompt = buildSystemPrompt(skills);
+  const systemPrompt = buildSystemPrompt(skills, skillRules);
 
   const encoder = new TextEncoder();
 

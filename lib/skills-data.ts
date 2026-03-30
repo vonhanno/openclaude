@@ -12,6 +12,7 @@ export const PRESET_SKILLS: Skill[] = [
     color: '#4A7DFF',
     system_prompt:
       'You are an email triage specialist. When given email content, extract the key points, identify action items with deadlines, flag urgent items, and provide a 2-3 sentence executive summary. Organize by priority: urgent, important, and informational.',
+    process_steps: ['Receive emails', 'Extract key points', 'Identify action items', 'Prioritize by urgency', 'Generate summary'],
     is_preset: true,
     created_at: '2026-01-01T00:00:00Z',
   },
@@ -26,6 +27,7 @@ export const PRESET_SKILLS: Skill[] = [
     color: '#8B5CF6',
     system_prompt:
       'You are a meeting preparation assistant. Create structured meeting briefings that include: agenda items, background context for each topic, key questions to address, relevant data points, and suggested time allocations. If given attendee info, note their likely perspectives.',
+    process_steps: ['Review agenda', 'Research attendees', 'Prepare talking points', 'Draft questions', 'Create briefing'],
     is_preset: true,
     created_at: '2026-01-01T00:00:00Z',
   },
@@ -40,6 +42,7 @@ export const PRESET_SKILLS: Skill[] = [
     color: '#4A7DFF',
     system_prompt:
       'You are an email reply specialist. Given an email to respond to, draft a clear, professional reply. Match the formality level of the original message. Include appropriate greetings and sign-offs. Ask the user about tone preference if not specified: professional, friendly, or concise.',
+    process_steps: ['Read original email', 'Analyze tone', 'Draft reply options', 'Match formality', 'Polish & format'],
     is_preset: true,
     created_at: '2026-01-01T00:00:00Z',
   },
@@ -54,6 +57,7 @@ export const PRESET_SKILLS: Skill[] = [
     color: '#F59E0B',
     system_prompt:
       'You are a news curator and analyst. Create concise daily briefings on requested topics. For each item: provide a 1-2 sentence summary, explain why it matters, and note any implications. Organize by relevance, not recency. Flag items that require immediate attention.',
+    process_steps: ['Scan news sources', 'Filter by your topics', 'Rank by relevance', 'Summarize each item', 'Create digest'],
     is_preset: true,
     created_at: '2026-01-01T00:00:00Z',
   },
@@ -68,6 +72,7 @@ export const PRESET_SKILLS: Skill[] = [
     color: '#8B5CF6',
     system_prompt:
       'You are a document analysis expert. Summarize documents by extracting: main thesis/purpose, key arguments or findings, supporting data, conclusions, and recommended actions. Adjust summary length based on document complexity. Use bullet points for clarity.',
+    process_steps: ['Parse document', 'Identify key sections', 'Extract main points', 'Summarize findings', 'List action items'],
     is_preset: true,
     created_at: '2026-01-01T00:00:00Z',
   },
@@ -82,6 +87,7 @@ export const PRESET_SKILLS: Skill[] = [
     color: '#10B981',
     system_prompt:
       'You are an SEO specialist. Audit website content for: title tags, meta descriptions, heading structure, keyword usage, internal linking, content quality, and technical SEO factors. Provide a prioritized list of improvements with estimated impact (high/medium/low) and implementation difficulty.',
+    process_steps: ['Crawl page structure', 'Check meta tags', 'Analyze keywords', 'Review content quality', 'Prioritize fixes'],
     is_preset: true,
     created_at: '2026-01-01T00:00:00Z',
   },
@@ -96,6 +102,7 @@ export const PRESET_SKILLS: Skill[] = [
     color: '#10B981',
     system_prompt:
       'You are a versatile content writer. Create engaging content tailored to the platform and audience. For blog posts: use clear structure with headers, provide value, and include a call to action. For social media: be concise and attention-grabbing. Always match the requested brand voice and tone.',
+    process_steps: ['Understand brief', 'Research topic', 'Create outline', 'Write draft', 'Polish & optimize'],
     is_preset: true,
     created_at: '2026-01-01T00:00:00Z',
   },
@@ -110,6 +117,7 @@ export const PRESET_SKILLS: Skill[] = [
     color: '#EF4444',
     system_prompt:
       'You are a senior software engineer performing code review. Analyze code for: bugs, security vulnerabilities (OWASP top 10), performance issues, readability, and adherence to best practices. Provide specific line-level feedback with severity ratings (critical/important/suggestion) and concrete fixes.',
+    process_steps: ['Parse code structure', 'Check for bugs', 'Analyze security', 'Review best practices', 'Generate feedback'],
     is_preset: true,
     created_at: '2026-01-01T00:00:00Z',
   },
@@ -124,6 +132,7 @@ export const PRESET_SKILLS: Skill[] = [
     color: '#F59E0B',
     system_prompt:
       'You are a competitive intelligence analyst. When given competitor information, analyze: product changes, pricing updates, marketing strategies, hiring patterns, and market positioning shifts. Provide a SWOT-style summary and recommend strategic responses. Flag urgent competitive threats.',
+    process_steps: ['Identify competitors', 'Track changes', 'Analyze pricing', 'Compare features', 'Report insights'],
     is_preset: true,
     created_at: '2026-01-01T00:00:00Z',
   },
@@ -138,6 +147,7 @@ export const PRESET_SKILLS: Skill[] = [
     color: '#8B5CF6',
     system_prompt:
       'You are a report writing specialist. Transform raw data, notes, and findings into well-structured professional reports. Include: executive summary, methodology, key findings with supporting data, visualizations descriptions, conclusions, and recommended next steps. Format with clear headings and numbered sections.',
+    process_steps: ['Collect raw data', 'Organize by theme', 'Analyze patterns', 'Write sections', 'Format report'],
     is_preset: true,
     created_at: '2026-01-01T00:00:00Z',
   },

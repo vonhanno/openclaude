@@ -12,6 +12,7 @@ export interface Skill {
   icon_name: string;
   color: string;
   system_prompt: string;
+  process_steps?: string[];
   is_preset: boolean;
   created_at: string;
 }
