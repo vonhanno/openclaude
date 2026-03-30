@@ -1,9 +1,4 @@
-import Anthropic from '@anthropic-ai/sdk';
 import type { Skill } from './types';
-
-export function createAnthropicClient(apiKey: string) {
-  return new Anthropic({ apiKey });
-}
 
 export function buildSystemPrompt(skills: Skill[]): string {
   const base = `You are a helpful AI assistant powered by OpenClaude. You have the following skills equipped:\n\n`;

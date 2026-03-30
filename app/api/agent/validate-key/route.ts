@@ -1,30 +1,9 @@
-import Anthropic from '@anthropic-ai/sdk';
+// This endpoint is no longer needed — OpenClaude uses Claude Max subscription
+// via Claude Code CLI instead of direct API keys.
+// Kept as a placeholder for future API-key mode if scaling requires it.
 
-export async function POST(request: Request) {
-  const { apiKey } = await request.json();
-
-  if (!apiKey) {
-    return new Response(
-      JSON.stringify({ valid: false, error: 'No API key provided' }),
-      {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      }
-    );
-  }
-
-  try {
-    const client = new Anthropic({ apiKey });
-    // Make a minimal call to validate the key
-    await client.messages.create({
-      model: 'claude-sonnet-4-6-20250514',
-      max_tokens: 10,
-      messages: [{ role: 'user', content: 'Hi' }],
-    });
-    return Response.json({ valid: true });
-  } catch (err: unknown) {
-    const message =
-      err instanceof Error ? err.message : 'Invalid API key';
-    return Response.json({ valid: false, error: message }, { status: 401 });
-  }
+export async function POST() {
+  return Response.json({
+    message: 'API key validation is not needed. OpenClaude uses your Claude Max subscription.'
+  });
 }

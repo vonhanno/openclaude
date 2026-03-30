@@ -4,14 +4,12 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import AgentMascot from "@/components/mascot/AgentMascot";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { Mail, Calendar, Search, Megaphone } from "lucide-react";
 import type { SkillCategory } from "@/lib/types";
 
-const LS_API_KEY = "openclaude_api_key";
 const LS_EQUIPPED_KEY = "openclaude_equipped_skills";
 
 const INTENT_OPTIONS = [
@@ -21,9 +19,9 @@ const INTENT_OPTIONS = [
     description: "Manage and respond to emails",
     icon: Mail,
     loadoutSkills: [
-      "skill-email-writer",
-      "skill-meeting-notes",
-      "skill-copywriter",
+      "skill-email-summary",
+      "skill-smart-reply",
+      "skill-doc-summarizer",
     ],
     categories: ["communication"] as SkillCategory[],
   },
@@ -33,9 +31,9 @@ const INTENT_OPTIONS = [
     description: "Prepare for and follow up on meetings",
     icon: Calendar,
     loadoutSkills: [
-      "skill-meeting-notes",
-      "skill-data-analyst",
-      "skill-email-writer",
+      "skill-meeting-prep",
+      "skill-doc-summarizer",
+      "skill-report-generator",
     ],
     categories: ["productivity"] as SkillCategory[],
   },
@@ -45,9 +43,9 @@ const INTENT_OPTIONS = [
     description: "Gather and analyze information",
     icon: Search,
     loadoutSkills: [
-      "skill-data-analyst",
-      "skill-code-reviewer",
-      "skill-meeting-notes",
+      "skill-news-brief",
+      "skill-competitor-monitor",
+      "skill-doc-summarizer",
     ],
     categories: ["data"] as SkillCategory[],
   },
@@ -57,9 +55,9 @@ const INTENT_OPTIONS = [
     description: "Create content and monitor competitors",
     icon: Megaphone,
     loadoutSkills: [
-      "skill-copywriter",
-      "skill-ui-designer",
-      "skill-data-analyst",
+      "skill-content-writer",
+      "skill-seo-audit",
+      "skill-competitor-monitor",
     ],
     categories: ["marketing"] as SkillCategory[],
   },
@@ -68,31 +66,15 @@ const INTENT_OPTIONS = [
 export default function OnboardingPage() {
   const router = useRouter();
   const [step, setStep] = useState(1);
-  const [apiKey, setApiKey] = useState("");
-  const [keyError, setKeyError] = useState("");
   const [selectedIntent, setSelectedIntent] = useState<string | null>(null);
 
-  const progressValue = (step / 4) * 100;
+  const totalSteps = 3;
+  const progressValue = (step / totalSteps) * 100;
 
   const selectedOption = INTENT_OPTIONS.find((o) => o.id === selectedIntent);
   const equippedCategories = new Set<string>(
     selectedOption?.categories ?? []
   );
-
-  const handleKeySubmit = () => {
-    const trimmed = apiKey.trim();
-    if (!trimmed) {
-      setKeyError("Please enter an API key");
-      return;
-    }
-    if (!trimmed.startsWith("sk-ant-")) {
-      setKeyError("API key should start with sk-ant-");
-      return;
-    }
-    setKeyError("");
-    localStorage.setItem(LS_API_KEY, trimmed);
-    setStep(3);
-  };
 
   const handleIntentSelect = (intentId: string) => {
     setSelectedIntent(intentId);
@@ -107,7 +89,7 @@ export default function OnboardingPage() {
         JSON.stringify(option.loadoutSkills)
       );
     }
-    setStep(4);
+    setStep(3);
   };
 
   const handleGoToDashboard = () => {
@@ -137,65 +119,20 @@ export default function OnboardingPage() {
             Build your own AI assistant by equipping skills. It takes less
             than a minute to get started.
           </p>
+          <p className="max-w-md text-sm text-muted-foreground">
+            Powered by your Claude Max subscription — no API key needed.
+          </p>
           <Button size="lg" className="px-8" onClick={() => setStep(2)}>
             Get Started
           </Button>
         </div>
       </div>
 
-      {/* Step 2: API Key */}
+      {/* Step 2: Intent Selection */}
       <div
         className={cn(
           "transition-all duration-300",
           step === 2
-            ? "opacity-100 translate-y-0"
-            : "opacity-0 translate-y-4 absolute pointer-events-none"
-        )}
-      >
-        <div className="flex flex-col items-center text-center space-y-6 pt-12">
-          <h2 className="text-2xl font-bold text-[#1A1A1A]">
-            Enter your API Key
-          </h2>
-          <p className="max-w-md text-muted-foreground">
-            Paste your Anthropic API key below. It will be stored securely in
-            your browser and never sent to our servers.
-          </p>
-          <div className="w-full max-w-sm space-y-3">
-            <Input
-              type="password"
-              placeholder="sk-ant-..."
-              value={apiKey}
-              onChange={(e) => {
-                setApiKey(e.target.value);
-                setKeyError("");
-              }}
-              className={cn(keyError && "border-red-400")}
-            />
-            {keyError && (
-              <p className="text-sm text-red-500">{keyError}</p>
-            )}
-            <Button
-              size="lg"
-              className="w-full"
-              onClick={handleKeySubmit}
-            >
-              Continue
-            </Button>
-            <button
-              onClick={() => setStep(3)}
-              className="text-sm text-muted-foreground hover:text-[#1A1A1A] transition-colors"
-            >
-              Skip for now
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Step 3: Intent Selection */}
-      <div
-        className={cn(
-          "transition-all duration-300",
-          step === 3
             ? "opacity-100 translate-y-0"
             : "opacity-0 translate-y-4 absolute pointer-events-none"
         )}
@@ -255,11 +192,11 @@ export default function OnboardingPage() {
         </div>
       </div>
 
-      {/* Step 4: Ready */}
+      {/* Step 3: Ready */}
       <div
         className={cn(
           "transition-all duration-300",
-          step === 4
+          step === 3
             ? "opacity-100 translate-y-0"
             : "opacity-0 translate-y-4 absolute pointer-events-none"
         )}

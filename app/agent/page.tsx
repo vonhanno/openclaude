@@ -12,7 +12,6 @@ import type { Skill, Loadout, Run, SkillCategory } from "@/lib/types";
 import { PRESET_LOADOUTS } from "@/lib/skills-data";
 
 const LS_EQUIPPED_KEY = "openclaude_equipped_skills";
-const LS_API_KEY = "openclaude_api_key";
 const LS_RUNS_KEY = "openclaude_runs";
 
 function getFromLS<T>(key: string, fallback: T): T {
@@ -29,7 +28,6 @@ function getFromLS<T>(key: string, fallback: T): T {
 export default function AgentPage() {
   const [skills, setSkills] = useState<Skill[]>([]);
   const [equippedIds, setEquippedIds] = useState<Set<string>>(new Set());
-  const [apiKey, setApiKey] = useState("");
   const [runs, setRuns] = useState<Run[]>([]);
   const [selectedLoadout, setSelectedLoadout] = useState<string | null>(null);
   const [isRunning, setIsRunning] = useState(false);
@@ -46,9 +44,6 @@ export default function AgentPage() {
     // Load persisted state from localStorage
     const savedIds = getFromLS<string[]>(LS_EQUIPPED_KEY, []);
     setEquippedIds(new Set(savedIds));
-
-    const savedKey = localStorage.getItem(LS_API_KEY) ?? "";
-    setApiKey(savedKey);
 
     const savedRuns = getFromLS<Run[]>(LS_RUNS_KEY, []);
     setRuns(savedRuns);
@@ -97,7 +92,7 @@ export default function AgentPage() {
 
   const handleRun = useCallback(
     async (prompt: string) => {
-      if (!apiKey || equippedIds.size === 0) return;
+      if (equippedIds.size === 0) return;
 
       setIsRunning(true);
       setStreamContent("");
@@ -111,7 +106,6 @@ export default function AgentPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             prompt,
-            apiKey,
             skillIds: Array.from(equippedIds),
           }),
         });
@@ -172,7 +166,7 @@ export default function AgentPage() {
       localStorage.setItem(LS_RUNS_KEY, JSON.stringify(updatedRuns));
       setIsRunning(false);
     },
-    [apiKey, equippedIds, equippedSkills, runs]
+    [equippedIds, equippedSkills, runs]
   );
 
   return (
@@ -250,13 +244,11 @@ export default function AgentPage() {
         <RunPrompt
           onRun={handleRun}
           isRunning={isRunning}
-          disabled={!apiKey || equippedIds.size === 0}
+          disabled={equippedIds.size === 0}
           disabledReason={
-            !apiKey
-              ? "Add your API key in Settings first"
-              : equippedIds.size === 0
-                ? "Equip at least one skill"
-                : undefined
+            equippedIds.size === 0
+              ? "Equip at least one skill"
+              : undefined
           }
         />
       </section>

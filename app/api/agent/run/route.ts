@@ -1,12 +1,16 @@
-import { createAnthropicClient, buildSystemPrompt } from '@/lib/anthropic';
+import { buildSystemPrompt } from '@/lib/anthropic';
 import { PRESET_SKILLS } from '@/lib/skills-data';
+import { spawn } from 'child_process';
+
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
-  const { prompt, apiKey, skillIds } = await request.json();
+  const { prompt, skillIds } = await request.json();
 
-  if (!prompt || !apiKey) {
+  if (!prompt) {
     return new Response(
-      JSON.stringify({ error: 'Missing prompt or API key' }),
+      JSON.stringify({ error: 'Missing prompt' }),
       {
         status: 400,
         headers: { 'Content-Type': 'application/json' },
@@ -16,51 +20,56 @@ export async function POST(request: Request) {
 
   const skills = PRESET_SKILLS.filter((s) => skillIds?.includes(s.id));
   const systemPrompt = buildSystemPrompt(skills);
-  const client = createAnthropicClient(apiKey);
+  const fullPrompt = `${systemPrompt}\n\n---\n\nUser request: ${prompt}`;
 
   const encoder = new TextEncoder();
 
   const stream = new ReadableStream({
-    async start(controller) {
-      try {
-        const response = await client.messages.create({
-          model: 'claude-sonnet-4-6-20250514',
-          max_tokens: 4096,
-          system: systemPrompt,
-          messages: [{ role: 'user', content: prompt }],
-          stream: true,
-        });
+    start(controller) {
+      // Use claude CLI with --print flag (outputs text, uses Max subscription)
+      const claude = spawn('claude', ['--print', '--no-input', '-p', fullPrompt], {
+        env: { ...process.env, PATH: process.env.PATH },
+        shell: true,
+      });
 
-        for await (const event of response) {
-          if (
-            event.type === 'content_block_delta' &&
-            event.delta.type === 'text_delta'
-          ) {
-            controller.enqueue(
-              encoder.encode(
-                `event: token\ndata: ${JSON.stringify({ text: event.delta.text })}\n\n`
-              )
-            );
-          }
-          if (event.type === 'message_stop') {
-            controller.enqueue(
-              encoder.encode(
-                `event: done\ndata: ${JSON.stringify({ finished: true })}\n\n`
-              )
-            );
-          }
-        }
-      } catch (err: unknown) {
-        const message =
-          err instanceof Error ? err.message : 'Unknown error';
+      claude.stdout.on('data', (data: Buffer) => {
+        const text = data.toString();
         controller.enqueue(
           encoder.encode(
-            `event: error\ndata: ${JSON.stringify({ message })}\n\n`
+            `event: token\ndata: ${JSON.stringify({ text })}\n\n`
           )
         );
-      } finally {
+      });
+
+      claude.stderr.on('data', (data: Buffer) => {
+        const message = data.toString();
+        // Only send actual errors, not progress info
+        if (message.toLowerCase().includes('error')) {
+          controller.enqueue(
+            encoder.encode(
+              `event: error\ndata: ${JSON.stringify({ message })}\n\n`
+            )
+          );
+        }
+      });
+
+      claude.on('close', () => {
+        controller.enqueue(
+          encoder.encode(
+            `event: done\ndata: ${JSON.stringify({ finished: true })}\n\n`
+          )
+        );
         controller.close();
-      }
+      });
+
+      claude.on('error', (err) => {
+        controller.enqueue(
+          encoder.encode(
+            `event: error\ndata: ${JSON.stringify({ message: err.message })}\n\n`
+          )
+        );
+        controller.close();
+      });
     },
   });
 
