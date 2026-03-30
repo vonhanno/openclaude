@@ -20,17 +20,23 @@ export async function POST(request: Request) {
 
   const skills = PRESET_SKILLS.filter((s) => skillIds?.includes(s.id));
   const systemPrompt = buildSystemPrompt(skills);
-  const fullPrompt = `${systemPrompt}\n\n---\n\nUser request: ${prompt}`;
 
   const encoder = new TextEncoder();
 
   const stream = new ReadableStream({
     start(controller) {
-      // Use claude CLI with --print flag (outputs text, uses Max subscription)
-      const claude = spawn('claude', ['--print', '--no-input', '-p', fullPrompt], {
-        env: { ...process.env, PATH: process.env.PATH },
-        shell: true,
+      // Spawn claude CLI with --print and --system-prompt
+      // Prompt is piped via stdin to avoid shell escaping issues
+      const claude = spawn('claude', [
+        '--print',
+        '--system-prompt', systemPrompt,
+      ], {
+        env: { ...process.env },
       });
+
+      // Write user prompt to stdin
+      claude.stdin.write(prompt);
+      claude.stdin.end();
 
       claude.stdout.on('data', (data: Buffer) => {
         const text = data.toString();
@@ -42,9 +48,8 @@ export async function POST(request: Request) {
       });
 
       claude.stderr.on('data', (data: Buffer) => {
-        const message = data.toString();
-        // Only send actual errors, not progress info
-        if (message.toLowerCase().includes('error')) {
+        const message = data.toString().trim();
+        if (message && message.toLowerCase().includes('error')) {
           controller.enqueue(
             encoder.encode(
               `event: error\ndata: ${JSON.stringify({ message })}\n\n`
@@ -53,7 +58,14 @@ export async function POST(request: Request) {
         }
       });
 
-      claude.on('close', () => {
+      claude.on('close', (code) => {
+        if (code !== 0) {
+          controller.enqueue(
+            encoder.encode(
+              `event: error\ndata: ${JSON.stringify({ message: `Claude exited with code ${code}` })}\n\n`
+            )
+          );
+        }
         controller.enqueue(
           encoder.encode(
             `event: done\ndata: ${JSON.stringify({ finished: true })}\n\n`

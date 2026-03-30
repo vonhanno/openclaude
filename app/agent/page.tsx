@@ -212,16 +212,6 @@ export default function AgentPage() {
         />
       </section>
 
-      {/* Skills equipped counter */}
-      <div className="text-center">
-        <p className="text-sm text-muted-foreground">
-          <span className="font-semibold text-[#1A1A1A]">
-            {equippedIds.size}
-          </span>{" "}
-          {equippedIds.size === 1 ? "skill" : "skills"} equipped
-        </p>
-      </div>
-
       {/* Skill Grid */}
       <section id="skills">
         <h2 className="mb-3 text-sm font-medium text-muted-foreground uppercase tracking-wider">
@@ -239,6 +229,13 @@ export default function AgentPage() {
         </div>
       </section>
 
+      {/* Stream Output — shown above prompt when active */}
+      {(isRunning || streamContent) && (
+        <section>
+          <RunStream streamContent={streamContent} isStreaming={isRunning} />
+        </section>
+      )}
+
       {/* Run Prompt */}
       <section className="sticky bottom-0 bg-background pb-4 pt-4 border-t border-[#E5E7EB]">
         <RunPrompt
@@ -252,13 +249,6 @@ export default function AgentPage() {
           }
         />
       </section>
-
-      {/* Stream Output */}
-      {(isRunning || streamContent) && (
-        <section>
-          <RunStream streamContent={streamContent} isStreaming={isRunning} />
-        </section>
-      )}
     </div>
   );
 }
