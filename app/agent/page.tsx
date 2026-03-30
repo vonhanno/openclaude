@@ -32,6 +32,7 @@ export default function AgentPage() {
   const [selectedLoadout, setSelectedLoadout] = useState<string | null>(null);
   const [isRunning, setIsRunning] = useState(false);
   const [streamContent, setStreamContent] = useState("");
+  const [loaded, setLoaded] = useState(false);
 
   // Load data on mount
   useEffect(() => {
@@ -47,17 +48,17 @@ export default function AgentPage() {
 
     const savedRuns = getFromLS<Run[]>(LS_RUNS_KEY, []);
     setRuns(savedRuns);
+    setLoaded(true);
   }, []);
 
-  // Persist equipped skills
+  // Persist equipped skills (only after initial load)
   useEffect(() => {
-    if (equippedIds.size > 0 || localStorage.getItem(LS_EQUIPPED_KEY)) {
-      localStorage.setItem(
-        LS_EQUIPPED_KEY,
-        JSON.stringify(Array.from(equippedIds))
-      );
-    }
-  }, [equippedIds]);
+    if (!loaded) return;
+    localStorage.setItem(
+      LS_EQUIPPED_KEY,
+      JSON.stringify(Array.from(equippedIds))
+    );
+  }, [equippedIds, loaded]);
 
   const toggleSkill = useCallback((id: string) => {
     setEquippedIds((prev) => {
