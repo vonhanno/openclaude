@@ -13,40 +13,13 @@ import {
   Settings,
   Plug,
   Play,
-  Mail,
-  Calendar,
-  Search,
-  Code,
-  BarChart3,
-  Pencil,
-  Radar,
-  FileText,
-  Newspaper,
-  Zap,
-  Briefcase,
 } from "lucide-react";
+import MiniMascot from "@/components/mascot/MiniMascot";
 import AgentCustomization from "./AgentCustomization";
 
 /* -------------------------------------------------------------------------- */
 /* Shared constants                                                           */
 /* -------------------------------------------------------------------------- */
-
-const ICON_MAP: Record<
-  string,
-  React.ComponentType<{ size?: number; className?: string; style?: React.CSSProperties }>
-> = {
-  Mail,
-  Calendar,
-  Search,
-  Code,
-  BarChart3,
-  Pencil,
-  Radar,
-  FileText,
-  Newspaper,
-  Zap,
-  Briefcase,
-};
 
 const STEP_TYPE_ICON: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
   command: Terminal,
@@ -86,7 +59,6 @@ export default async function AgentDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  const Icon = ICON_MAP[recipe.icon_name] || Zap;
   const diff = DIFFICULTY_CONFIG[recipe.difficulty];
   const catMeta = CATEGORY_META[recipe.category];
 
@@ -112,12 +84,7 @@ export default async function AgentDetailPage({ params }: PageProps) {
       <div className="mb-12">
         {/* Icon + Name */}
         <div className="flex items-start gap-4">
-          <div
-            className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl"
-            style={{ backgroundColor: `${recipe.color}14` }}
-          >
-            <Icon size={28} style={{ color: recipe.color }} />
-          </div>
+          <MiniMascot variant={recipe.slug} size={72} />
           <div className="min-w-0">
             <h1 className="text-2xl font-bold tracking-tight text-[#1A1A1A] sm:text-3xl">
               {recipe.name}

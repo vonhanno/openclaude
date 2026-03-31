@@ -11,39 +11,8 @@ import {
 import {
   ArrowRight,
   Clock,
-  Mail,
-  Calendar,
-  Search,
-  Code,
-  BarChart3,
-  Pencil,
-  Radar,
-  FileText,
-  Newspaper,
-  Zap,
-  Briefcase,
 } from "lucide-react";
-
-/* -------------------------------------------------------------------------- */
-/* Icon mapping                                                               */
-/* -------------------------------------------------------------------------- */
-
-const ICON_MAP: Record<
-  string,
-  React.ComponentType<{ size?: number; className?: string; style?: React.CSSProperties }>
-> = {
-  Mail,
-  Calendar,
-  Search,
-  Code,
-  BarChart3,
-  Pencil,
-  Radar,
-  FileText,
-  Newspaper,
-  Zap,
-  Briefcase,
-};
+import MiniMascot from "@/components/mascot/MiniMascot";
 
 /* -------------------------------------------------------------------------- */
 /* Difficulty badge config                                                    */
@@ -166,7 +135,6 @@ export default function AgentCatalogPage() {
       {/* ------------------------------------------------------------------ */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {filtered.map((recipe) => {
-          const Icon = ICON_MAP[recipe.icon_name] || Zap;
           const diff = DIFFICULTY_CONFIG[recipe.difficulty];
 
           return (
@@ -176,14 +144,9 @@ export default function AgentCatalogPage() {
               className="group"
             >
               <div className="flex h-full flex-col rounded-2xl border border-border/60 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04)] transition-all duration-200 hover:border-border hover:shadow-[0_4px_12px_rgba(0,0,0,0.06)]">
-                {/* Top row: icon + arrow */}
+                {/* Top row: mascot + arrow */}
                 <div className="flex items-start justify-between">
-                  <div
-                    className="flex h-10 w-10 items-center justify-center rounded-xl"
-                    style={{ backgroundColor: `${recipe.color}12` }}
-                  >
-                    <Icon size={20} style={{ color: recipe.color }} />
-                  </div>
+                  <MiniMascot variant={recipe.slug} size={48} />
                   <ArrowRight
                     size={16}
                     className="mt-1 text-muted-foreground/40 transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-[#1A1A1A]"
