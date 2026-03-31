@@ -112,34 +112,48 @@ export default function AgentMascot({
           <Px x={8} y={13} color={BODY} w={9} h={1} />
           <Px x={9} y={14} color={BODY} w={7} h={1} />
 
-          {/* === TENTACLES === */}
+          {/* === TENTACLES WITH CLAWS === */}
           {/* Tentacle 1 (far left) */}
           <Px x={7} y={14} color={BODY} w={2} h={1} />
           <Px x={6} y={15} color={BODY} w={2} h={1} />
           <Px x={5} y={16} color={BODY} w={2} h={1} />
-          <Px x={5} y={17} color={BODY_DARK} w={1} h={1} />
-          <Px x={4} y={17} color={LEG_TIP} w={1} h={1} />
-          <Px x={4} y={18} color={LEG_TIP} w={2} h={1} />
+          <Px x={5} y={17} color={BODY_DARK} w={2} h={1} />
+          {/* Claw — two prongs splitting outward */}
+          <Px x={4} y={18} color={LEG_TIP} w={1} h={1} />
+          <Px x={7} y={18} color={LEG_TIP} w={1} h={1} />
+          <Px x={3} y={19} color={LEG_TIP} w={1} h={1} />
+          <Px x={7} y={19} color={LEG_TIP} w={1} h={1} />
 
           {/* Tentacle 2 (inner left) */}
           <Px x={9} y={15} color={BODY} w={2} h={1} />
           <Px x={9} y={16} color={BODY} w={2} h={1} />
           <Px x={8} y={17} color={BODY_DARK} w={2} h={1} />
-          <Px x={8} y={18} color={LEG_TIP} w={2} h={1} />
+          {/* Claw */}
+          <Px x={7} y={18} color={LEG_TIP} w={1} h={1} />
+          <Px x={10} y={18} color={LEG_TIP} w={1} h={1} />
+          <Px x={7} y={19} color={LEG_TIP} w={1} h={1} />
+          <Px x={11} y={19} color={LEG_TIP} w={1} h={1} />
 
           {/* Tentacle 3 (inner right) */}
           <Px x={14} y={15} color={BODY} w={2} h={1} />
           <Px x={14} y={16} color={BODY} w={2} h={1} />
           <Px x={15} y={17} color={BODY_DARK} w={2} h={1} />
-          <Px x={15} y={18} color={LEG_TIP} w={2} h={1} />
+          {/* Claw */}
+          <Px x={14} y={18} color={LEG_TIP} w={1} h={1} />
+          <Px x={17} y={18} color={LEG_TIP} w={1} h={1} />
+          <Px x={13} y={19} color={LEG_TIP} w={1} h={1} />
+          <Px x={17} y={19} color={LEG_TIP} w={1} h={1} />
 
           {/* Tentacle 4 (far right) */}
           <Px x={16} y={14} color={BODY} w={2} h={1} />
           <Px x={17} y={15} color={BODY} w={2} h={1} />
           <Px x={18} y={16} color={BODY} w={2} h={1} />
-          <Px x={19} y={17} color={BODY_DARK} w={1} h={1} />
-          <Px x={20} y={17} color={LEG_TIP} w={1} h={1} />
-          <Px x={19} y={18} color={LEG_TIP} w={2} h={1} />
+          <Px x={18} y={17} color={BODY_DARK} w={2} h={1} />
+          {/* Claw */}
+          <Px x={17} y={18} color={LEG_TIP} w={1} h={1} />
+          <Px x={20} y={18} color={LEG_TIP} w={1} h={1} />
+          <Px x={17} y={19} color={LEG_TIP} w={1} h={1} />
+          <Px x={21} y={19} color={LEG_TIP} w={1} h={1} />
 
           {/* === MAGNIFYING GLASS (marketing) === */}
           <g

@@ -31,15 +31,20 @@ function BaseBody() {
       <Px x={9} y={5} w={2} h={2} color={EYES} />
       <Px x={5} y={5} color={EYE_HIGHLIGHT} />
       <Px x={9} y={5} color={EYE_HIGHLIGHT} />
-      {/* Tentacles */}
+      {/* Tentacles with claws */}
       <Px x={3} y={9} w={2} h={1} color={BODY} />
       <Px x={6} y={9} w={1} h={1} color={BODY} />
       <Px x={9} y={9} w={1} h={1} color={BODY} />
       <Px x={12} y={9} w={1} h={1} color={BODY} />
-      <Px x={3} y={10} w={1} h={1} color={BODY_LIGHT} />
-      <Px x={6} y={10} w={1} h={1} color={BODY_LIGHT} />
-      <Px x={9} y={10} w={1} h={1} color={BODY_LIGHT} />
-      <Px x={12} y={10} w={1} h={1} color={BODY_LIGHT} />
+      {/* Claw tips — two prongs per tentacle */}
+      <Px x={2} y={10} w={1} h={1} color={BODY_LIGHT} />
+      <Px x={4} y={10} w={1} h={1} color={BODY_LIGHT} />
+      <Px x={5} y={10} w={1} h={1} color={BODY_LIGHT} />
+      <Px x={7} y={10} w={1} h={1} color={BODY_LIGHT} />
+      <Px x={8} y={10} w={1} h={1} color={BODY_LIGHT} />
+      <Px x={10} y={10} w={1} h={1} color={BODY_LIGHT} />
+      <Px x={11} y={10} w={1} h={1} color={BODY_LIGHT} />
+      <Px x={13} y={10} w={1} h={1} color={BODY_LIGHT} />
     </g>
   );
 }
