@@ -3,6 +3,7 @@
 import React, { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import type { CustomizationPrompt, SetupStep } from "@/lib/agents-catalog";
 import {
   Copy,
@@ -11,31 +12,18 @@ import {
   Settings,
   Plug,
   Play,
+  X,
+  Plus,
+  MessageCircle,
+  Hash,
+  Mail,
+  Clock,
+  Send,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 /* -------------------------------------------------------------------------- */
-/* Step type icon mapping                                                     */
-/* -------------------------------------------------------------------------- */
-
-const STEP_TYPE_ICON: Record<
-  string,
-  React.ComponentType<{ size?: number; className?: string }>
-> = {
-  command: Terminal,
-  config: Settings,
-  connect: Plug,
-  test: Play,
-};
-
-const STEP_TYPE_LABEL: Record<string, string> = {
-  command: "Terminal",
-  config: "Configuration",
-  connect: "Connect",
-  test: "Verify",
-};
-
-/* -------------------------------------------------------------------------- */
-/* Command block with copy button                                             */
+/* Command block                                                              */
 /* -------------------------------------------------------------------------- */
 
 function CommandBlock({ command }: { command: string }) {
@@ -65,6 +53,44 @@ function CommandBlock({ command }: { command: string }) {
 }
 
 /* -------------------------------------------------------------------------- */
+/* Channel options                                                            */
+/* -------------------------------------------------------------------------- */
+
+const CHANNELS = [
+  { id: "telegram", label: "Telegram", icon: Send, color: "#0088cc" },
+  { id: "slack", label: "Slack", icon: Hash, color: "#4A154B" },
+  { id: "email", label: "Email", icon: Mail, color: "#4A7DFF" },
+] as const;
+
+const SCHEDULE_OPTIONS = [
+  { id: "morning", label: "Every morning at 7:00" },
+  { id: "twice", label: "Twice a day (7:00 & 17:00)" },
+  { id: "hourly", label: "Every hour" },
+  { id: "manual", label: "Manual only (no schedule)" },
+] as const;
+
+/* -------------------------------------------------------------------------- */
+/* Step type icons                                                            */
+/* -------------------------------------------------------------------------- */
+
+const STEP_TYPE_ICON: Record<
+  string,
+  React.ComponentType<{ size?: number; className?: string }>
+> = {
+  command: Terminal,
+  config: Settings,
+  connect: Plug,
+  test: Play,
+};
+
+const STEP_TYPE_LABEL: Record<string, string> = {
+  command: "Terminal",
+  config: "Configuration",
+  connect: "Connect",
+  test: "Verify",
+};
+
+/* -------------------------------------------------------------------------- */
 /* Main component                                                             */
 /* -------------------------------------------------------------------------- */
 
@@ -73,14 +99,16 @@ interface AgentCustomizationProps {
   setupSteps: SetupStep[];
   skillContent: string;
   stepTypeIcons: string[];
+  agentName: string;
 }
 
 export default function AgentCustomization({
   customizationPrompts,
   setupSteps,
   skillContent,
+  agentName,
 }: AgentCustomizationProps) {
-  /* Customization state */
+  /* Customization values */
   const [values, setValues] = useState<Record<string, string>>(() => {
     const initial: Record<string, string> = {};
     for (const prompt of customizationPrompts) {
@@ -89,18 +117,126 @@ export default function AgentCustomization({
     return initial;
   });
 
-  /* Copy skill content */
+  /* Custom rules */
+  const [rules, setRules] = useState<string[]>([]);
+  const [newRule, setNewRule] = useState("");
+
+  const addRule = () => {
+    const trimmed = newRule.trim();
+    if (trimmed) {
+      setRules((prev) => [...prev, trimmed]);
+      setNewRule("");
+    }
+  };
+
+  const removeRule = (index: number) => {
+    setRules((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  /* Channels */
+  const [selectedChannels, setSelectedChannels] = useState<Set<string>>(
+    new Set()
+  );
+
+  const toggleChannel = (channelId: string) => {
+    setSelectedChannels((prev) => {
+      const next = new Set(prev);
+      if (next.has(channelId)) {
+        next.delete(channelId);
+      } else {
+        next.add(channelId);
+      }
+      return next;
+    });
+  };
+
+  /* Schedule */
+  const [schedule, setSchedule] = useState("morning");
+
+  /* Install state */
+  const [showSetup, setShowSetup] = useState(false);
   const [skillCopied, setSkillCopied] = useState(false);
 
+  /* Build final skill content with customizations, rules, channels, schedule */
   const processedSkillContent = React.useMemo(() => {
     let content = skillContent;
+
+    // Replace template fields
     for (const [field, value] of Object.entries(values)) {
       if (value) {
-        content = content.replace(new RegExp(`\\{\\{${field}\\}\\}`, "g"), value);
+        content = content.replace(
+          new RegExp(`\\{\\{${field}\\}\\}`, "g"),
+          value
+        );
       }
     }
+
+    // Append custom rules
+    if (rules.length > 0) {
+      content += "\n\n## Custom Rules\n";
+      content += rules.map((r) => `- ${r}`).join("\n");
+    }
+
+    // Append delivery channels
+    if (selectedChannels.size > 0) {
+      const channelNames = Array.from(selectedChannels)
+        .map((id) => CHANNELS.find((c) => c.id === id)?.label)
+        .filter(Boolean);
+      content += `\n\n## Delivery\nSend results to: ${channelNames.join(", ")}`;
+    }
+
+    // Append schedule
+    const scheduleOption = SCHEDULE_OPTIONS.find((s) => s.id === schedule);
+    if (schedule !== "manual" && scheduleOption) {
+      content += `\n\n## Schedule\nRun: ${scheduleOption.label}`;
+    }
+
     return content;
-  }, [skillContent, values]);
+  }, [skillContent, values, rules, selectedChannels, schedule]);
+
+  /* Build dynamic setup steps based on channel selection */
+  const dynamicSetupSteps = React.useMemo(() => {
+    const steps = [...setupSteps];
+
+    // Add channel connection steps
+    if (selectedChannels.has("telegram")) {
+      steps.splice(steps.length - 1, 0, {
+        title: "Connect Telegram",
+        description:
+          "Set up a Telegram bot and connect it to Claude Code for message delivery.",
+        command: "claude /mcp\n# Select 'Telegram' and follow the OAuth flow",
+        type: "connect" as const,
+      });
+    }
+    if (selectedChannels.has("slack")) {
+      steps.splice(steps.length - 1, 0, {
+        title: "Connect Slack",
+        description:
+          "Connect your Slack workspace to Claude Code for channel notifications.",
+        command: "claude /mcp\n# Select 'Slack' and authorize your workspace",
+        type: "connect" as const,
+      });
+    }
+
+    // Add schedule step
+    if (schedule !== "manual") {
+      const scheduleOption = SCHEDULE_OPTIONS.find((s) => s.id === schedule);
+      const cronExpr =
+        schedule === "morning"
+          ? "0 7 * * *"
+          : schedule === "twice"
+            ? "0 7,17 * * *"
+            : "0 * * * *";
+      steps.splice(steps.length - 1, 0, {
+        title: "Set up schedule",
+        description: `Configure the agent to run automatically: ${scheduleOption?.label}`,
+        command: `claude /schedule create --cron "${cronExpr}" --prompt "Run ${agentName}"`,
+        type: "config" as const,
+      });
+    }
+
+    return steps;
+  }, [setupSteps, selectedChannels, schedule, agentName]);
 
   const copySkill = useCallback(() => {
     navigator.clipboard.writeText(processedSkillContent).then(() => {
@@ -110,17 +246,16 @@ export default function AgentCustomization({
   }, [processedSkillContent]);
 
   return (
-    <>
+    <div className="space-y-10">
       {/* ------------------------------------------------------------------ */}
-      {/* Customization section                                               */}
+      {/* Customization fields                                                */}
       {/* ------------------------------------------------------------------ */}
       {customizationPrompts.length > 0 && (
-        <section className="mb-12">
-          <h2 className="mb-6 text-lg font-semibold text-[#1A1A1A]">
+        <section>
+          <h2 className="mb-5 text-lg font-semibold text-[#1A1A1A]">
             Customize your agent
           </h2>
-
-          <div className="space-y-5">
+          <div className="space-y-4">
             {customizationPrompts.map((prompt) => (
               <div key={prompt.field}>
                 <label
@@ -139,7 +274,7 @@ export default function AgentCustomization({
                       [prompt.field]: e.target.value,
                     }))
                   }
-                  className="max-w-lg rounded-xl border-border/60 bg-white transition-colors focus:border-primary"
+                  className="max-w-lg rounded-xl border-border/60 bg-white"
                 />
               </div>
             ))}
@@ -148,93 +283,242 @@ export default function AgentCustomization({
       )}
 
       {/* ------------------------------------------------------------------ */}
-      {/* Setup guide section                                                 */}
+      {/* Custom rules                                                        */}
       {/* ------------------------------------------------------------------ */}
-      <section className="mb-12">
-        <h2 className="mb-6 text-lg font-semibold text-[#1A1A1A]">
-          Setup Guide
+      <section>
+        <h2 className="mb-2 text-lg font-semibold text-[#1A1A1A]">
+          Your rules
         </h2>
+        <p className="mb-4 text-sm text-muted-foreground">
+          Add custom rules in plain language. The agent will always follow these.
+        </p>
 
-        <div className="space-y-0">
-          {setupSteps.map((step, i) => {
-            const StepIcon = STEP_TYPE_ICON[step.type] || Terminal;
-            const stepLabel = STEP_TYPE_LABEL[step.type] || step.type;
-
-            return (
-              <div key={i} className="relative flex gap-4 pb-8 last:pb-0">
-                {/* Vertical connecting line */}
-                {i < setupSteps.length - 1 && (
-                  <div className="absolute left-[19px] top-10 h-[calc(100%-24px)] w-px bg-border/60" />
-                )}
-
-                {/* Number circle */}
-                <div className="relative z-10 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 border-border bg-white text-sm font-bold text-[#1A1A1A]">
-                  {i + 1}
-                </div>
-
-                {/* Step content */}
-                <div className="min-w-0 flex-1 pt-1">
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-[15px] font-semibold text-[#1A1A1A]">
-                      {step.title}
-                    </h3>
-                    <span className="inline-flex items-center gap-1 rounded-md bg-secondary/70 px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-                      <StepIcon size={10} />
-                      {stepLabel}
-                    </span>
-                  </div>
-                  <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                    {step.description}
-                  </p>
-                  {step.command && <CommandBlock command={step.command} />}
-                </div>
+        {rules.length > 0 && (
+          <div className="mb-3 space-y-2">
+            {rules.map((rule, i) => (
+              <div
+                key={i}
+                className="flex items-center gap-2 rounded-lg border border-border/60 bg-white px-3 py-2"
+              >
+                <span className="flex-1 text-sm text-[#1A1A1A]">{rule}</span>
+                <button
+                  onClick={() => removeRule(i)}
+                  className="rounded p-1 text-muted-foreground hover:bg-red-50 hover:text-red-500 transition-colors"
+                >
+                  <X size={14} />
+                </button>
               </div>
+            ))}
+          </div>
+        )}
+
+        <div className="flex gap-2 max-w-lg">
+          <Input
+            placeholder='e.g. "Ignore emails from newsletters"'
+            value={newRule}
+            onChange={(e) => setNewRule(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && addRule()}
+            className="rounded-xl border-border/60 bg-white"
+          />
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={addRule}
+            disabled={!newRule.trim()}
+            className="rounded-xl flex-shrink-0"
+          >
+            <Plus size={16} />
+          </Button>
+        </div>
+      </section>
+
+      {/* ------------------------------------------------------------------ */}
+      {/* Delivery channels                                                   */}
+      {/* ------------------------------------------------------------------ */}
+      <section>
+        <h2 className="mb-2 text-lg font-semibold text-[#1A1A1A]">
+          Deliver to
+        </h2>
+        <p className="mb-4 text-sm text-muted-foreground">
+          Where should the agent send results? Select one or more channels.
+        </p>
+
+        <div className="flex flex-wrap gap-3">
+          {CHANNELS.map((channel) => {
+            const Icon = channel.icon;
+            const isSelected = selectedChannels.has(channel.id);
+            return (
+              <button
+                key={channel.id}
+                onClick={() => toggleChannel(channel.id)}
+                className={cn(
+                  "flex items-center gap-2.5 rounded-xl border-2 px-4 py-3 transition-all",
+                  isSelected
+                    ? "border-[#4A7DFF] bg-[#4A7DFF]/5 shadow-sm"
+                    : "border-border/60 bg-white hover:border-border hover:shadow-sm"
+                )}
+              >
+                <div
+                  className={cn(
+                    "flex h-8 w-8 items-center justify-center rounded-lg",
+                    isSelected ? "bg-[#4A7DFF]/10" : "bg-muted"
+                  )}
+                >
+                  <Icon
+                    size={16}
+                    style={{ color: isSelected ? channel.color : undefined }}
+                    className={cn(!isSelected && "text-muted-foreground")}
+                  />
+                </div>
+                <span
+                  className={cn(
+                    "text-sm font-medium",
+                    isSelected ? "text-[#1A1A1A]" : "text-muted-foreground"
+                  )}
+                >
+                  {channel.label}
+                </span>
+                {isSelected && (
+                  <Check size={14} className="text-[#4A7DFF] ml-1" />
+                )}
+              </button>
             );
           })}
         </div>
       </section>
 
       {/* ------------------------------------------------------------------ */}
-      {/* Bottom CTA                                                          */}
+      {/* Schedule                                                            */}
       {/* ------------------------------------------------------------------ */}
-      <section className="rounded-2xl border border-border/60 bg-white p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
-        <h3 className="text-base font-semibold text-[#1A1A1A]">
-          Ready to install?
-        </h3>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Copy the SKILL.md content below and save it to your agents directory.
-          Your customizations are included automatically.
+      <section>
+        <h2 className="mb-2 text-lg font-semibold text-[#1A1A1A]">
+          Schedule
+        </h2>
+        <p className="mb-4 text-sm text-muted-foreground">
+          How often should this agent run automatically?
         </p>
 
-        {/* Skill preview */}
-        <div className="relative mt-4 max-h-64 overflow-y-auto rounded-xl bg-[#1A1A1A] px-4 py-3">
-          <pre className="text-xs leading-relaxed text-emerald-400/80 font-mono whitespace-pre-wrap">
-            {processedSkillContent}
-          </pre>
-        </div>
-
-        <div className="mt-4 flex items-center gap-3">
-          <Button
-            onClick={copySkill}
-            className="h-10 rounded-xl px-6 font-semibold"
-          >
-            {skillCopied ? (
-              <>
-                <Check size={16} className="mr-1.5" />
-                Copied!
-              </>
-            ) : (
-              <>
-                <Copy size={16} className="mr-1.5" />
-                Copy SKILL.md
-              </>
-            )}
-          </Button>
-          <span className="text-xs text-muted-foreground">
-            Save as SKILL.md in your agent directory
-          </span>
+        <div className="flex flex-wrap gap-2">
+          {SCHEDULE_OPTIONS.map((option) => (
+            <button
+              key={option.id}
+              onClick={() => setSchedule(option.id)}
+              className={cn(
+                "flex items-center gap-2 rounded-xl border-2 px-4 py-2.5 text-sm font-medium transition-all",
+                schedule === option.id
+                  ? "border-[#4A7DFF] bg-[#4A7DFF]/5 text-[#1A1A1A]"
+                  : "border-border/60 bg-white text-muted-foreground hover:border-border"
+              )}
+            >
+              <Clock size={14} />
+              {option.label}
+            </button>
+          ))}
         </div>
       </section>
-    </>
+
+      {/* ------------------------------------------------------------------ */}
+      {/* Install button                                                      */}
+      {/* ------------------------------------------------------------------ */}
+      <section className="border-t border-border/60 pt-8">
+        <Button
+          size="lg"
+          onClick={() => setShowSetup(true)}
+          className="h-12 rounded-xl px-8 text-base font-semibold"
+        >
+          <Terminal size={18} className="mr-2" />
+          Install Agent
+        </Button>
+
+        {!showSetup && (
+          <p className="mt-2 text-xs text-muted-foreground">
+            Click to see the step-by-step terminal setup guide
+          </p>
+        )}
+      </section>
+
+      {/* ------------------------------------------------------------------ */}
+      {/* Setup guide (shown after clicking Install)                          */}
+      {/* ------------------------------------------------------------------ */}
+      {showSetup && (
+        <section className="animate-in fade-in slide-in-from-bottom-4 duration-300">
+          <h2 className="mb-6 text-lg font-semibold text-[#1A1A1A]">
+            Setup Guide
+          </h2>
+
+          <div className="space-y-0">
+            {dynamicSetupSteps.map((step, i) => {
+              const StepIcon = STEP_TYPE_ICON[step.type] || Terminal;
+              const stepLabel = STEP_TYPE_LABEL[step.type] || step.type;
+
+              return (
+                <div key={i} className="relative flex gap-4 pb-8 last:pb-0">
+                  {i < dynamicSetupSteps.length - 1 && (
+                    <div className="absolute left-[19px] top-10 h-[calc(100%-24px)] w-px bg-border/60" />
+                  )}
+                  <div className="relative z-10 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 border-border bg-white text-sm font-bold text-[#1A1A1A]">
+                    {i + 1}
+                  </div>
+                  <div className="min-w-0 flex-1 pt-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-[15px] font-semibold text-[#1A1A1A]">
+                        {step.title}
+                      </h3>
+                      <span className="inline-flex items-center gap-1 rounded-md bg-secondary/70 px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                        <StepIcon size={10} />
+                        {stepLabel}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                      {step.description}
+                    </p>
+                    {step.command && <CommandBlock command={step.command} />}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* SKILL.md preview */}
+          <div className="mt-8 rounded-2xl border border-border/60 bg-white p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+            <h3 className="text-base font-semibold text-[#1A1A1A]">
+              Your generated SKILL.md
+            </h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              This includes your customizations, rules,
+              {selectedChannels.size > 0 ? " channels," : ""} and schedule.
+            </p>
+
+            <div className="relative mt-4 max-h-64 overflow-y-auto rounded-xl bg-[#1A1A1A] px-4 py-3">
+              <pre className="text-xs leading-relaxed text-emerald-400/80 font-mono whitespace-pre-wrap">
+                {processedSkillContent}
+              </pre>
+            </div>
+
+            <div className="mt-4 flex items-center gap-3">
+              <Button
+                onClick={copySkill}
+                className="h-10 rounded-xl px-6 font-semibold"
+              >
+                {skillCopied ? (
+                  <>
+                    <Check size={16} className="mr-1.5" />
+                    Copied!
+                  </>
+                ) : (
+                  <>
+                    <Copy size={16} className="mr-1.5" />
+                    Copy SKILL.md
+                  </>
+                )}
+              </Button>
+              <span className="text-xs text-muted-foreground">
+                Save to ~/.claude/skills/{agentName.toLowerCase().replace(/\s+/g, "-")}/SKILL.md
+              </span>
+            </div>
+          </div>
+        </section>
+      )}
+    </div>
   );
 }

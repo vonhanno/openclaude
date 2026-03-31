@@ -208,6 +208,7 @@ export default async function AgentDetailPage({ params }: PageProps) {
         setupSteps={recipe.setup_steps}
         skillContent={recipe.skill_content}
         stepTypeIcons={Object.keys(STEP_TYPE_ICON)}
+        agentName={recipe.name}
       />
     </div>
   );
