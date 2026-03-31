@@ -9,8 +9,9 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "OpenClaude",
-  description: "Your visual AI agent builder",
+  title: "OpenClaude — Build AI agents in minutes",
+  description:
+    "Browse ready-made AI agent recipes. Get step-by-step terminal setup guides. Powered by Claude Code.",
 };
 
 export default function RootLayout({
@@ -21,7 +22,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={dmSans.variable}>
       <body className="min-h-screen bg-background text-foreground antialiased">
-        <div className="relative flex min-h-screen flex-col">{children}</div>
+        {children}
       </body>
     </html>
   );
