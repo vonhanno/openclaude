@@ -150,19 +150,23 @@ export default async function AgentDetailPage({ params }: PageProps) {
           {recipe.description}
         </p>
 
-        {/* Process flow */}
-        <div className="mt-6 flex flex-wrap items-center gap-2">
+        {/* Process flow — vertical numbered list */}
+        <div className="mt-6 space-y-0">
           {recipe.process_steps.map((step, i) => (
-            <React.Fragment key={i}>
-              <span className="rounded-lg border border-border/60 bg-white px-3 py-1.5 text-xs font-medium text-[#1A1A1A] shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
-                {step}
-              </span>
+            <div key={i} className="relative flex items-start gap-3 py-2.5">
+              {/* Vertical line */}
               {i < recipe.process_steps.length - 1 && (
-                <span className="text-xs text-muted-foreground/40">
-                  &rarr;
-                </span>
+                <div className="absolute left-[13px] top-[34px] h-[calc(100%-22px)] w-px bg-border/60" />
               )}
-            </React.Fragment>
+              {/* Number */}
+              <div className="relative z-10 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-[#1A1A1A] text-xs font-bold text-white">
+                {i + 1}
+              </div>
+              {/* Step text */}
+              <p className="text-[15px] leading-relaxed text-[#1A1A1A] pt-0.5">
+                {step}
+              </p>
+            </div>
           ))}
         </div>
       </section>
