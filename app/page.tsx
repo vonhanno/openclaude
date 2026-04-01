@@ -9,6 +9,7 @@ import {
   Clock,
 } from "lucide-react";
 import MiniMascot from "@/components/mascot/MiniMascot";
+import { BrowseMascot, CustomizeMascot, InstallMascot } from "@/components/mascot/StepMascots";
 
 // Icon map removed — using MiniMascot instead
 
@@ -90,7 +91,7 @@ export default function LandingPage() {
         <div className="relative flex flex-col items-start gap-12 sm:flex-row sm:items-start sm:gap-0">
           {/* Connecting line (desktop only) */}
           <div
-            className="absolute left-0 right-0 top-6 hidden h-px sm:block"
+            className="absolute left-0 right-0 top-12 hidden h-px sm:block"
             style={{
               background:
                 "repeating-linear-gradient(90deg, #D1D5DB 0, #D1D5DB 6px, transparent 6px, transparent 12px)",
@@ -102,25 +103,28 @@ export default function LandingPage() {
               num: "1",
               title: "Browse",
               desc: "Pick an agent from our catalog",
+              Mascot: BrowseMascot,
             },
             {
               num: "2",
               title: "Customize",
               desc: "Answer a few questions to tailor it",
+              Mascot: CustomizeMascot,
             },
             {
               num: "3",
               title: "Install",
               desc: "Follow the terminal guide, agent is ready",
+              Mascot: InstallMascot,
             },
           ].map((step) => (
             <div
               key={step.num}
               className="relative flex flex-1 flex-col items-center text-center"
             >
-              {/* Number circle */}
-              <div className="relative z-10 flex h-12 w-12 items-center justify-center rounded-full border-2 border-[#1A1A1A] bg-background text-lg font-bold text-[#1A1A1A]">
-                {step.num}
+              {/* Pixel mascot illustration */}
+              <div className="relative z-10 mb-1">
+                <step.Mascot size={80} />
               </div>
               <h3 className="mt-4 text-base font-semibold text-[#1A1A1A]">
                 {step.title}
