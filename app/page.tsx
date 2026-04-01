@@ -93,13 +93,6 @@ export default function LandingPage() {
         </h2>
 
         <div className="relative flex flex-col items-start gap-12 sm:flex-row sm:items-start sm:gap-0">
-          <div
-            className="absolute left-0 right-0 top-12 hidden h-px sm:block"
-            style={{
-              background:
-                "repeating-linear-gradient(90deg, #D1D5DB 0, #D1D5DB 6px, transparent 6px, transparent 12px)",
-            }}
-          />
 
           {[
             {
@@ -126,9 +119,9 @@ export default function LandingPage() {
               className="relative flex flex-1 flex-col items-center text-center"
             >
               <div className="relative z-10 mb-1">
-                <step.Mascot size={80} />
-                {/* Number badge */}
-                <div className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-[#1A1A1A] text-xs font-bold text-white">
+                <step.Mascot size={96} />
+                {/* Number badge — integrated with illustration */}
+                <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex h-8 w-8 items-center justify-center rounded-full bg-[#1A1A1A] text-sm font-bold text-white shadow-md ring-3 ring-[#F7F5F0]">
                   {step.num}
                 </div>
               </div>
