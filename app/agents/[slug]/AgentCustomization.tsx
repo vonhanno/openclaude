@@ -223,8 +223,8 @@ ${body}`;
     // Step 2: Save SKILL.md (user copies from the preview below)
     steps.push({
       title: "Save the SKILL.md file",
-      description: "Copy the generated SKILL.md below and save it to the skill folder. Use the \"Copy SKILL.md\" button, then paste it:",
-      command: `cat > ~/.claude/skills/${slug}/SKILL.md << 'SKILLEOF'\n# Paste the copied SKILL.md content here\nSKILLEOF`,
+      description: "Click \"Copy SKILL.md\" below, then open the file in your editor and paste the content:",
+      command: `open ~/.claude/skills/${slug}/\n# Create a new file called SKILL.md and paste the copied content`,
       type: "config",
     });
 
