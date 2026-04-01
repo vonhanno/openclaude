@@ -157,68 +157,99 @@ export default function AgentCustomization({
   const [showSetup, setShowSetup] = useState(false);
   const [skillCopied, setSkillCopied] = useState(false);
 
-  /* Build final skill content with customizations, rules, channels, schedule */
+  /* Build complete SKILL.md with frontmatter + all user customizations */
   const processedSkillContent = React.useMemo(() => {
-    let content = skillContent;
+    const slug = agentName.toLowerCase().replace(/\s+/g, "-");
 
-    // Replace template fields
+    // Build the skill body from the template
+    let body = skillContent;
     for (const [field, value] of Object.entries(values)) {
       if (value) {
-        content = content.replace(
+        body = body.replace(
           new RegExp(`\\{\\{${field}\\}\\}`, "g"),
           value
         );
       }
     }
 
-    // Append custom rules
+    // Clean up any remaining unfilled placeholders
+    body = body.replace(/\{\{[^}]+\}\}/g, "(not set)");
+
+    // Add custom rules
     if (rules.length > 0) {
-      content += "\n\n## Custom Rules\n";
-      content += rules.map((r) => `- ${r}`).join("\n");
+      body += "\n\n## Custom Rules\nAlways follow these rules:\n";
+      body += rules.map((r) => `- ${r}`).join("\n");
     }
 
-    // Append delivery channels
+    // Add delivery config
     if (selectedChannels.size > 0) {
       const channelNames = Array.from(selectedChannels)
         .map((id) => CHANNELS.find((c) => c.id === id)?.label)
         .filter(Boolean);
-      content += `\n\n## Delivery\nSend results to: ${channelNames.join(", ")}`;
+      body += `\n\n## Delivery\nAfter generating results, send a summary to: ${channelNames.join(", ")}`;
     }
 
-    // Append schedule
+    // Add schedule info
     const scheduleOption = SCHEDULE_OPTIONS.find((s) => s.id === schedule);
     if (schedule !== "manual" && scheduleOption) {
-      content += `\n\n## Schedule\nRun: ${scheduleOption.label}`;
+      body += `\n\n## Schedule\nThis agent is configured to run: ${scheduleOption.label}`;
     }
 
-    return content;
-  }, [skillContent, values, rules, selectedChannels, schedule]);
+    // Build complete SKILL.md with YAML frontmatter
+    const triggerHints = `Triggers on requests about ${agentName.toLowerCase()}, or related tasks.`;
+    const fullSkill = `---
+name: ${slug}
+description: ${agentName} — configured via OpenClaude.io. ${triggerHints}
+---
 
-  /* Build dynamic setup steps based on channel selection */
+${body}`;
+
+    return fullSkill;
+  }, [skillContent, values, rules, selectedChannels, schedule, agentName]);
+
+  /* Build simplified setup steps based on user choices */
   const dynamicSetupSteps = React.useMemo(() => {
-    const steps = [...setupSteps];
+    const slug = agentName.toLowerCase().replace(/\s+/g, "-");
+    const steps: SetupStep[] = [];
 
-    // Add channel connection steps
-    if (selectedChannels.has("telegram")) {
-      steps.splice(steps.length - 1, 0, {
-        title: "Connect Telegram",
-        description:
-          "Set up a Telegram bot and connect it to Claude Code for message delivery.",
-        command: "claude /mcp\n# Select 'Telegram' and follow the OAuth flow",
-        type: "connect" as const,
+    // Step 1: Create skill folder
+    steps.push({
+      title: "Create the skill folder",
+      description: "Create a directory for your agent's skill file.",
+      command: `mkdir -p ~/.claude/skills/${slug}`,
+      type: "command",
+    });
+
+    // Step 2: Save SKILL.md (user copies from the preview below)
+    steps.push({
+      title: "Save the SKILL.md file",
+      description: "Copy the generated SKILL.md below and save it to the skill folder. Use the \"Copy SKILL.md\" button, then paste it:",
+      command: `cat > ~/.claude/skills/${slug}/SKILL.md << 'SKILLEOF'\n# Paste the copied SKILL.md content here\nSKILLEOF`,
+      type: "config",
+    });
+
+    // Step 3: Connect required services
+    const mcpServices: string[] = [];
+    // Check original setup steps for MCP requirements
+    for (const step of setupSteps) {
+      if (step.type === "connect") {
+        mcpServices.push(step.title.replace("Connect ", ""));
+      }
+    }
+    // Add user-selected channels
+    if (selectedChannels.has("telegram")) mcpServices.push("Telegram");
+    if (selectedChannels.has("slack")) mcpServices.push("Slack");
+
+    if (mcpServices.length > 0) {
+      steps.push({
+        title: `Connect ${mcpServices.join(" & ")}`,
+        description: `Open Claude Code and connect the required services. Run /mcp and connect: ${mcpServices.join(", ")}.`,
+        command: "claude /mcp",
+        type: "connect",
       });
     }
-    if (selectedChannels.has("slack")) {
-      steps.splice(steps.length - 1, 0, {
-        title: "Connect Slack",
-        description:
-          "Connect your Slack workspace to Claude Code for channel notifications.",
-        command: "claude /mcp\n# Select 'Slack' and authorize your workspace",
-        type: "connect" as const,
-      });
-    }
 
-    // Add schedule step
+    // Step 4: Set up schedule (if not manual)
     if (schedule !== "manual") {
       const scheduleOption = SCHEDULE_OPTIONS.find((s) => s.id === schedule);
       const cronExpr =
@@ -227,13 +258,21 @@ export default function AgentCustomization({
           : schedule === "twice"
             ? "0 7,17 * * *"
             : "0 * * * *";
-      steps.splice(steps.length - 1, 0, {
-        title: "Set up schedule",
-        description: `Configure the agent to run automatically: ${scheduleOption?.label}`,
-        command: `claude /schedule create --cron "${cronExpr}" --prompt "Run ${agentName}"`,
-        type: "config" as const,
+      steps.push({
+        title: "Set up automatic schedule",
+        description: `The agent will run: ${scheduleOption?.label}.`,
+        command: `claude /schedule create --cron "${cronExpr}" --prompt "Run my ${agentName}"`,
+        type: "config",
       });
     }
+
+    // Final step: Test
+    steps.push({
+      title: "Test your agent",
+      description: "Run a quick test to make sure everything works.",
+      command: `claude -p "Run my ${agentName}"`,
+      type: "test",
+    });
 
     return steps;
   }, [setupSteps, selectedChannels, schedule, agentName]);
