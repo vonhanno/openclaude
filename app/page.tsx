@@ -23,7 +23,12 @@ export default function LandingPage() {
           </Link>
           <Link href="/agents">
             <Button variant="ghost" size="sm" className="text-sm font-medium">
-              Browse Agents
+              Agents
+            </Button>
+          </Link>
+          <Link href="/faq">
+            <Button variant="ghost" size="sm" className="text-sm font-medium">
+              FAQ
             </Button>
           </Link>
         </div>
@@ -164,10 +169,10 @@ export default function LandingPage() {
               GitHub
             </a>
             <Link
-              href="/help"
+              href="/faq"
               className="text-xs text-muted-foreground transition-colors hover:text-[#1A1A1A]"
             >
-              Help
+              FAQ
             </Link>
           </div>
         </div>
