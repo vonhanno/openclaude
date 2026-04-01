@@ -2,31 +2,15 @@ import React from "react";
 import Link from "next/link";
 import AgentMascot from "@/components/mascot/AgentMascot";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { AGENT_RECIPES, CATEGORY_META } from "@/lib/agents-catalog";
-import {
-  ArrowRight,
-  Clock,
-} from "lucide-react";
+import { AGENT_RECIPES } from "@/lib/agents-catalog";
+import { ArrowRight } from "lucide-react";
 import MiniMascot from "@/components/mascot/MiniMascot";
 import { BrowseMascot, CustomizeMascot, InstallMascot } from "@/components/mascot/StepMascots";
 
-// Icon map removed — using MiniMascot instead
-
-const DIFFICULTY_CONFIG = {
-  easy: { label: "Easy", className: "bg-emerald-100 text-emerald-700 border-emerald-200" },
-  medium: { label: "Medium", className: "bg-amber-100 text-amber-700 border-amber-200" },
-  advanced: { label: "Advanced", className: "bg-red-100 text-red-700 border-red-200" },
-} as const;
-
 export default function LandingPage() {
-  const featured = AGENT_RECIPES.slice(0, 4);
-
   return (
     <div className="flex min-h-screen flex-col">
-      {/* ------------------------------------------------------------------ */}
-      {/* Minimal header                                                      */}
-      {/* ------------------------------------------------------------------ */}
+      {/* Header */}
       <header className="flex items-center justify-between px-6 py-5 sm:px-10">
         <span className="font-pixel text-[10px] tracking-wide text-[#1A1A1A]">
           OpenClaude
@@ -38,17 +22,13 @@ export default function LandingPage() {
         </Link>
       </header>
 
-      {/* ------------------------------------------------------------------ */}
-      {/* Hero                                                                */}
-      {/* ------------------------------------------------------------------ */}
-      <section className="flex flex-col items-center px-6 pb-20 pt-12 sm:pt-20">
+      {/* Hero */}
+      <section className="flex flex-col items-center px-6 pb-16 pt-12 sm:pt-20">
         <div className="flex flex-col items-center text-center">
-          {/* Mascot */}
           <div className="mb-10">
             <AgentMascot equippedCategories={new Set()} />
           </div>
 
-          {/* Headline */}
           <h1 className="max-w-lg text-4xl font-bold leading-[1.1] tracking-tight text-[#1A1A1A] sm:text-5xl md:text-6xl">
             Build AI agents
             <br />
@@ -61,7 +41,6 @@ export default function LandingPage() {
             Powered by Claude Code.
           </p>
 
-          {/* CTA */}
           <div className="mt-10">
             <Link href="/agents">
               <Button
@@ -80,16 +59,40 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ------------------------------------------------------------------ */}
-      {/* How it works                                                        */}
-      {/* ------------------------------------------------------------------ */}
+      {/* Agent ticker — horizontal scroll of all agents */}
+      <section className="pb-20 overflow-hidden">
+        <div className="relative">
+          {/* Fade edges */}
+          <div className="pointer-events-none absolute left-0 top-0 z-10 h-full w-16 bg-gradient-to-r from-[#F7F5F0] to-transparent" />
+          <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-16 bg-gradient-to-l from-[#F7F5F0] to-transparent" />
+
+          {/* Scrolling track — duplicated for infinite loop effect */}
+          <div className="flex animate-scroll gap-3 px-6">
+            {[...AGENT_RECIPES, ...AGENT_RECIPES].map((recipe, i) => (
+              <Link
+                key={`${recipe.id}-${i}`}
+                href={`/agents/${recipe.slug}`}
+                className="group flex-shrink-0"
+              >
+                <div className="flex flex-col items-center gap-2 rounded-xl border border-border/60 bg-white px-5 py-4 w-[160px] shadow-[0_1px_2px_rgba(0,0,0,0.03)] transition-all duration-200 hover:border-border hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)]">
+                  <MiniMascot variant={recipe.slug} size={52} />
+                  <p className="text-sm font-medium text-[#1A1A1A] text-center whitespace-nowrap">
+                    {recipe.name}
+                  </p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* How it works */}
       <section className="mx-auto w-full max-w-3xl px-6 pb-24">
         <h2 className="mb-14 text-center text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground">
           How it works
         </h2>
 
         <div className="relative flex flex-col items-start gap-12 sm:flex-row sm:items-start sm:gap-0">
-          {/* Connecting line (desktop only) */}
           <div
             className="absolute left-0 right-0 top-12 hidden h-px sm:block"
             style={{
@@ -100,29 +103,25 @@ export default function LandingPage() {
 
           {[
             {
-              num: "1",
               title: "Browse",
               desc: "Pick an agent from our catalog",
               Mascot: BrowseMascot,
             },
             {
-              num: "2",
               title: "Customize",
               desc: "Answer a few questions to tailor it",
               Mascot: CustomizeMascot,
             },
             {
-              num: "3",
               title: "Install",
               desc: "Follow the terminal guide, agent is ready",
               Mascot: InstallMascot,
             },
           ].map((step) => (
             <div
-              key={step.num}
+              key={step.title}
               className="relative flex flex-1 flex-col items-center text-center"
             >
-              {/* Pixel mascot illustration */}
               <div className="relative z-10 mb-1">
                 <step.Mascot size={80} />
               </div>
@@ -137,79 +136,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ------------------------------------------------------------------ */}
-      {/* Featured agents                                                     */}
-      {/* ------------------------------------------------------------------ */}
-      <section className="mx-auto w-full max-w-4xl px-6 pb-28">
-        <h2 className="mb-10 text-center text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-          Featured agents
-        </h2>
-
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {featured.map((recipe) => {
-            const diff = DIFFICULTY_CONFIG[recipe.difficulty];
-
-            return (
-              <Link
-                key={recipe.id}
-                href={`/agents/${recipe.slug}`}
-                className="group"
-              >
-                <div className="flex h-full flex-col rounded-2xl border border-border/60 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04)] transition-all duration-200 hover:border-border hover:shadow-[0_4px_12px_rgba(0,0,0,0.06)]">
-                  {/* Top row: mascot + arrow */}
-                  <div className="flex items-start justify-between">
-                    <MiniMascot variant={recipe.slug} size={48} />
-                    <ArrowRight
-                      size={16}
-                      className="mt-1 text-muted-foreground/40 transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-[#1A1A1A]"
-                    />
-                  </div>
-
-                  {/* Name + tagline */}
-                  <h3 className="mt-4 text-[15px] font-semibold text-[#1A1A1A]">
-                    {recipe.name}
-                  </h3>
-                  <p className="mt-1 flex-1 text-sm leading-relaxed text-muted-foreground">
-                    {recipe.tagline}
-                  </p>
-
-                  {/* Bottom row: badges */}
-                  <div className="mt-4 flex items-center gap-2 border-t border-border/40 pt-4">
-                    <Badge
-                      variant="outline"
-                      className={`text-[10px] px-2 py-0.5 font-medium ${diff.className}`}
-                    >
-                      {diff.label}
-                    </Badge>
-                    <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <Clock size={12} />
-                      {recipe.setup_time}
-                    </span>
-                  </div>
-                </div>
-              </Link>
-            );
-          })}
-        </div>
-
-        {/* View all link */}
-        <div className="mt-8 text-center">
-          <Link
-            href="/agents"
-            className="group inline-flex items-center gap-1.5 text-sm font-medium text-[#1A1A1A] transition-colors hover:text-primary"
-          >
-            View all agents
-            <ArrowRight
-              size={14}
-              className="transition-transform group-hover:translate-x-0.5"
-            />
-          </Link>
-        </div>
-      </section>
-
-      {/* ------------------------------------------------------------------ */}
-      {/* Footer                                                              */}
-      {/* ------------------------------------------------------------------ */}
+      {/* Footer */}
       <footer className="mt-auto border-t border-border/40 px-6 py-8">
         <div className="mx-auto flex max-w-4xl flex-col items-center justify-between gap-4 sm:flex-row">
           <div className="flex flex-col items-center gap-1 sm:items-start">
@@ -222,7 +149,7 @@ export default function LandingPage() {
           </div>
           <div className="flex items-center gap-6">
             <a
-              href="https://github.com"
+              href="https://github.com/vonhanno/openclaude"
               className="text-xs text-muted-foreground transition-colors hover:text-[#1A1A1A]"
               target="_blank"
               rel="noopener noreferrer"
