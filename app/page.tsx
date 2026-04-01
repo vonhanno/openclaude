@@ -15,11 +15,18 @@ export default function LandingPage() {
         <span className="font-pixel text-[10px] tracking-wide text-[#1A1A1A]">
           OpenClaude
         </span>
-        <Link href="/agents">
-          <Button variant="ghost" size="sm" className="text-sm font-medium">
-            Browse Agents
-          </Button>
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link href="/knowledge">
+            <Button variant="ghost" size="sm" className="text-sm font-medium">
+              Knowledge Base
+            </Button>
+          </Link>
+          <Link href="/agents">
+            <Button variant="ghost" size="sm" className="text-sm font-medium">
+              Browse Agents
+            </Button>
+          </Link>
+        </div>
       </header>
 
       {/* Hero */}
