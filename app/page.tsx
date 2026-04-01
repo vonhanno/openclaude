@@ -74,9 +74,9 @@ export default function LandingPage() {
                 href={`/agents/${recipe.slug}`}
                 className="group flex-shrink-0"
               >
-                <div className="flex flex-col items-center gap-2 rounded-xl border border-border/60 bg-white px-5 py-4 w-[160px] shadow-[0_1px_2px_rgba(0,0,0,0.03)] transition-all duration-200 hover:border-border hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)]">
+                <div className="flex flex-col items-center gap-2 rounded-xl border border-border/60 bg-white px-5 py-4 w-[160px] h-[130px] justify-center shadow-[0_1px_2px_rgba(0,0,0,0.03)] transition-all duration-200 hover:border-border hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)]">
                   <MiniMascot variant={recipe.slug} size={52} />
-                  <p className="text-sm font-medium text-[#1A1A1A] text-center whitespace-nowrap">
+                  <p className="text-sm font-medium text-[#1A1A1A] text-center leading-tight">
                     {recipe.name}
                   </p>
                 </div>
@@ -103,16 +103,19 @@ export default function LandingPage() {
 
           {[
             {
+              num: "1",
               title: "Browse",
               desc: "Pick an agent from our catalog",
               Mascot: BrowseMascot,
             },
             {
+              num: "2",
               title: "Customize",
               desc: "Answer a few questions to tailor it",
               Mascot: CustomizeMascot,
             },
             {
+              num: "3",
               title: "Install",
               desc: "Follow the terminal guide, agent is ready",
               Mascot: InstallMascot,
@@ -124,6 +127,10 @@ export default function LandingPage() {
             >
               <div className="relative z-10 mb-1">
                 <step.Mascot size={80} />
+                {/* Number badge */}
+                <div className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-[#1A1A1A] text-xs font-bold text-white">
+                  {step.num}
+                </div>
               </div>
               <h3 className="mt-4 text-base font-semibold text-[#1A1A1A]">
                 {step.title}
